@@ -43,6 +43,9 @@ RDA5807M::RDA5807M(void) : b1(0),b2(0),b3(0),b4(0),b5(0),b6(0),b7(0),
   ENABLE(true),CHAN(5),DIRECT_MODE(false),
   TUNE(false),BAND(0),SPACE(0),STCIEN(false),
   RBDS(false),RDS_FIFO_EN(false),DE(1),
+  RDS_FIFO_CLR(false),SOFTMUTE_EN(false),
+  AFCD(false),I2S_ENABLE(false),
+  GPIO3(0),GPIO2(0),GPIO1(0),
 
 
   lastRead(0) {
@@ -256,7 +259,35 @@ void RDA5807M::Deemphasis(bool Europe) {
   Set();
 }
 
+void RDA5807M::Clear_RDS_FIFO(bool On) {
+  RDS_FIFO_CLR = On;
+  Set();
+}
 
+void RDA5807M::SoftMute(bool On) {
+  SOFTMUTE_EN = On;
+  Set();
+}
+
+void RDA5807M::AFC(bool On) {
+  AFCD = not On;
+  Set();
+}
+
+void RDA5807M::I2S(bool On) {
+  I2S_ENABLE = On;
+  Set();
+}
+
+void RDA5807M::SetGPIO(int GPIO, int Choice) {
+  if ((Choice < 0) or (Choice > 3))
+     return;
+  if ((GPIO < 1) or (GPIO > 3))
+     return;
+  if      (GPIO == 1) GPIO1 = Choice;
+  else if (GPIO == 2) GPIO2 = Choice;
+  else                GPIO3 = Choice;
+}
 
 
 
@@ -266,7 +297,49 @@ void RDA5807M::Deemphasis(bool Europe) {
  ******************************************************************************/
 
 void RDA5807M::Set(bool force) {
-  uint16_t u1=0,u2=0,u3=0,u4=0,u5=0,u6=0,u7=0;
+  uint16_t u1=0,u2,u3=0,u4=0,u5=0,u6=0,u7=0;
+
+  //--
+  if (DHIZ)                    u1 |= (1 << 15);
+  if (DMUTE)                   u1 |= (1 << 14);
+  if (MONO)                    u1 |= (1 << 13);
+  if (BASS)                    u1 |= (1 << 12);
+  if (RCLK_NON_CALIBRATE_MODE) u1 |= (1 << 11);
+  if (RCLK_DIRECT_INPUT_MODE)  u1 |= (1 << 10);
+  if (SEEKUP)                  u1 |= (1 << 9);
+  if (SEEK)                    u1 |= (1 << 8);
+  if (SKMODE)                  u1 |= (1 << 7);
+                               u1 |= (CLK_MODE << 4);
+  if (RDS_EN)                  u1 |= (1 << 3);
+  if (NEW_METHOD)              u1 |= (1 << 2);
+  if (SOFT_RESET)              u1 |= (1 << 1);
+  if (ENABLE)                  u1 |= 1;
+  //--
+                               u2  = (CHAN << 6);
+  if (DIRECT_MODE)             u2 |= (1 << 5);
+  if (TUNE)                    u2 |= (1 << 4);
+                               u2 |= (BAND << 2);
+                               u2 |= (SPACE);
+  //--
+  if (STCIEN)                  u3 |= (1 << 14);
+  if (RBDS)                    u3 |= (1 << 13);
+  if (RDS_FIFO_EN)             u3 |= (1 << 12);
+  if (DE)                      u3 |= (1 << 11);
+  if (RDS_FIFO_CLR)            u3 |= (1 << 10);
+  if (SOFTMUTE_EN)             u3 |= (1 << 9);
+  if (AFCD)                    u3 |= (1 << 8);
+  if (I2S_ENABLE)              u3 |= (1 << 6);
+                               u3 |= (GPIO3 << 4);
+                               u3 |= (GPIO2 << 2);
+                               u3 |= (GPIO1);
+  //--
+
+
+
+
+
+
+
 
   if (force ||
       (u1 != b1) || (u2 != b2) || (u3 != b3) || (u4 != b4) ||

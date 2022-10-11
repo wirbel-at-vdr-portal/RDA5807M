@@ -47,17 +47,21 @@ private:
   bool SKMODE,SEEK,SEEKUP;
   uint8_t CLK_MODE;
   bool RDS_EN,NEW_METHOD,SOFT_RESET;
-
   bool ENABLE;
   uint16_t CHAN;
   bool DIRECT_MODE;
   bool TUNE;
   uint8_t BAND;
-  uint8_t SPACE; 
+  uint8_t SPACE;
   bool STCIEN;
   bool RBDS;
   bool RDS_FIFO_EN;
   bool DE;
+  bool RDS_FIFO_CLR;
+  bool SOFTMUTE_EN;
+  bool AFCD;
+  bool I2S_ENABLE;
+  uint8_t GPIO3,GPIO2,GPIO1;
 
 
   bool MODE_65MHz; // If 0x07h_bit<9> ( band )=1, 65-76MHz; =0, 50-76MHz  
@@ -311,6 +315,43 @@ public:
    * true : 50 μs (Europe)
    */
   void Deemphasis(bool Europe);
+
+  /* On = clear RDS fifo
+   */
+  void Clear_RDS_FIFO(bool On);
+
+  /* softmute enable
+   */
+  void SoftMute(bool On);
+
+  /* enable/disable AFC.
+   */  
+  void AFC(bool On);
+
+  /* enable/disable digital I2S audio.
+   */  
+  void I2S(bool On);
+
+  /* Set GPIO function.
+   * GPIO  : 1 or 2 or 3
+   * Choice:
+   *   0: high impedance
+   *   1: special purpose.
+   *      GPIO3: Mono/Stereo indicator
+   *      GPIO2: Interrupt Output
+   *      GPIO1: do not use.
+   *   2: high
+   *   3: low
+   */
+  void SetGPIO(int GPIO, int Choice);
+
+
+
+
+
+
+
+
 
 
 };
