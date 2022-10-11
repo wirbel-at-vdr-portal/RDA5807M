@@ -46,9 +46,22 @@ private:
   bool RCLK_DIRECT_INPUT_MODE;
   bool SKMODE,SEEK,SEEKUP;
   uint8_t CLK_MODE;
-  bool RDS_EN,NEW_METHOD,SOFT_RESET; 
+  bool RDS_EN,NEW_METHOD,SOFT_RESET;
 
-  
+  bool ENABLE;
+  uint16_t CHAN;
+  bool DIRECT_MODE;
+  bool TUNE;
+  uint8_t BAND;
+  uint8_t SPACE; 
+  bool STCIEN;
+  bool RBDS;
+  bool RDS_FIFO_EN;
+  bool DE;
+
+
+  bool MODE_65MHz; // If 0x07h_bit<9> ( band )=1, 65-76MHz; =0, 50-76MHz  
+
 
   unsigned long lastRead;
 
@@ -108,7 +121,7 @@ public:
    *      Band 0: 87.0 MHz
    *      Band 1: 76.0 MHz
    *      Band 2: 76.0 MHz
-   *      Band 3: 65.0 MHz
+   *      Band 3: 65.0 MHz (or 50MHz)
    * The Channel Number is updated after a tune or seek operation.
    */
   uint16_t ChannelNumber(void);
@@ -238,16 +251,66 @@ public:
    */
   void SoftReset(bool On);
 
+  /* Power Up Enable.
+   */
+  void PowerUp(bool On);
 
+  /* Sets the current channel number, where Frequency is
+   * set as
+   *   Frequency = Channel Spacing (kHz) x Channel Number + Band Begin
+   *
+   *   Band Begin is
+   *      Band 0: 87.0 MHz
+   *      Band 1: 76.0 MHz
+   *      Band 2: 76.0 MHz
+   *      Band 3: 65.0 MHz (or 50MHz)
+   */
+  void ChannelNumber(uint16_t Channel);
 
+  /* Directly Control Mode, Only used when test.
+   */
+  void TestMode(bool On);
 
+  /* Start/Stop a tune operation.
+   */
+  void Tune(bool On);
 
+  /* Band Select.
+   * 0: 87–108MHz (US/Europe)
+   * 1: 76–91MHz (Japan)
+   * 2: 76–108MHz (world wide)
+   * 3: 65–76MHz （East Europe）
+   * 4: 50-65MHz
+   */
+  void Band(int Choice);
 
+  /* Channel Spacing.
+   * 0: 100kHz
+   * 1: 200kHz
+   * 2:  50kHz
+   * 3:  25KHz
+   */
+  void ChannelSpacing(int Choice);
 
+  /* Seek/Tune Complete Interrupt Enable.
+   * Generate a low pulse on GPIO2, when complete.
+   */
+  void SeekTuneInterrupt(bool On);
 
+  /* Enable RDBS (Radio Broadcast Data System) support.
+   * Only used in US.
+   */
+  void RBDS_enable(bool On);
 
+  /* RDS fifo mode enable.
+   */
+  void RDS_FIFO_mode(bool On);
 
-
+  /* FM De-emphasis.
+   * false: 75 μs (US)
+   * true : 50 μs (Europe)
+   */
+  void Deemphasis(bool Europe);
 
 
 };

@@ -40,6 +40,11 @@ RDA5807M::RDA5807M(void) : b1(0),b2(0),b3(0),b4(0),b5(0),b6(0),b7(0),
   CLK_MODE(0),
   RDS_EN(false),NEW_METHOD(false),SOFT_RESET(false),
 
+  ENABLE(true),CHAN(5),DIRECT_MODE(false),
+  TUNE(false),BAND(0),SPACE(0),STCIEN(false),
+  RBDS(false),RDS_FIFO_EN(false),DE(1),
+
+
   lastRead(0) {
   Get();
   CHIPID = Get(0x00);
@@ -200,6 +205,56 @@ void RDA5807M::RDS_enable(bool On) {
   Set();
 }
 
+void RDA5807M::PowerUp(bool On) {
+  ENABLE = On;
+  Set();
+}
+
+void RDA5807M::ChannelNumber(uint16_t Channel) {
+  CHAN = Channel & 0x3FF;
+  Set();
+}
+
+void RDA5807M::TestMode(bool On) {
+  DIRECT_MODE = On;
+  Set();
+}
+
+void RDA5807M::Tune(bool On) {
+  TUNE = On;
+  Set();
+}
+
+void RDA5807M::Band(int Choice) {
+  MODE_65MHz = Choice == 4 ? false : true;
+  BAND = (Choice == 4) ? 3 : Choice & 3;
+  Set();
+}
+
+void RDA5807M::ChannelSpacing(int Choice) {
+  SPACE = Choice & 3;
+  Set();
+}
+
+void RDA5807M::SeekTuneInterrupt(bool On) {
+  STCIEN = On;
+  Set();
+}
+
+void RDA5807M::RBDS_enable(bool On) {
+  RBDS = On;
+  Set();
+}
+
+void RDA5807M::RDS_FIFO_mode(bool On) {
+  RDS_FIFO_EN = On;
+  Set();
+}
+
+void RDA5807M::Deemphasis(bool Europe) {
+  DE = Europe;
+  Set();
+}
 
 
 
