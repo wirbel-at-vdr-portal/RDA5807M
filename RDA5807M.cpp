@@ -46,6 +46,9 @@ RDA5807M::RDA5807M(void) : b1(0),b2(0),b3(0),b4(0),b5(0),b6(0),b7(0),
   RDS_FIFO_CLR(false),SOFTMUTE_EN(false),
   AFCD(false),I2S_ENABLE(false),
   GPIO3(0),GPIO2(0),GPIO1(0),
+  INT_MODE(true),Seek_mode(0),
+  SEEKTH(8),LNA_PORT_SEL(2),
+  LNA_ICSEL_BIT(0),VOLUME(11),
 
 
   lastRead(0) {
@@ -289,6 +292,44 @@ void RDA5807M::SetGPIO(int GPIO, int Choice) {
   else                GPIO3 = Choice;
 }
 
+void RDA5807M::InterruptMode(bool Wait) { 
+  INT_MODE = Wait;
+  Set();
+}
+
+void RDA5807M::RSSISeekMode(bool On) { 
+  Seek_mode = On ? 2 : 0;
+  Set();
+}
+
+void RDA5807M::SeekThreshold(int Value) {
+  SEEKTH = Value & 0xF;
+  Set();
+}
+
+void RDA5807M::LNA_InputPort(int Value) {
+  LNA_PORT_SEL = Value & 0x3;
+  Set();
+}
+
+void RDA5807M::LNA_Current(int Value) {
+  LNA_ICSEL_BIT = Value & 0x3;
+  Set();
+}
+
+void RDA5807M::Volume(int Value) {
+  VOLUME = Value & 0xF;
+  Set();
+}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -333,6 +374,16 @@ void RDA5807M::Set(bool force) {
                                u3 |= (GPIO2 << 2);
                                u3 |= (GPIO1);
   //--
+  if (INT_MODE)                u4 |= (1 << 15);
+                               u4 |= (Seek_mode << 13);
+                               u4 |= (SEEKTH << 8);
+                               u4 |= (LNA_PORT_SEL << 6);
+                               u4 |= (LNA_ICSEL_BIT << 4);
+                               u4 |= (VOLUME);
+  //--
+
+
+
 
 
 

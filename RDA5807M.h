@@ -63,6 +63,15 @@ private:
   bool I2S_ENABLE;
   uint8_t GPIO3,GPIO2,GPIO1;
 
+  bool INT_MODE;
+  uint8_t Seek_mode;
+  uint8_t SEEKTH;
+  uint8_t LNA_PORT_SEL;
+  uint8_t LNA_ICSEL_BIT;
+  uint8_t VOLUME;
+
+
+
 
   bool MODE_65MHz; // If 0x07h_bit<9> ( band )=1, 65-76MHz; =0, 50-76MHz  
 
@@ -345,13 +354,41 @@ public:
    */
   void SetGPIO(int GPIO, int Choice);
 
+  /* Seek/Tune Interrupt mode.
+   * false: 5ms
+   * true : wait until Reg 0x0C was read
+   */
+  void InterruptMode(bool Wait);
 
+  /* add RSSI (signal strength) seek mode.
+   */
+  void RSSISeekMode(bool On);
 
+  /* Seek SNR threshold value.
+   *   0..15, default:8 (-71dBm)
+   */
+  void SeekThreshold(int Value);
 
+  /* Select Low Noise Amplifier input port.
+   * 0: no input
+   * 1: (-) input
+   * 2: (+) input (default)
+   * 3: dual port input
+   */
+  void LNA_InputPort(int Value);
 
+  /* Select Low Noise Amplifier current.
+   * 0: 1.8mA
+   * 1: 2.1mA
+   * 2: 2.5mA
+   * 3: 3.0mA
+   */
+  void LNA_Current(int Value);
 
-
-
+  /* Audio Volume.
+   *   0..15, default:11
+   */
+  void Volume(int Value);
 
 
 };
