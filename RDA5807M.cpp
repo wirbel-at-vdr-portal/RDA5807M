@@ -49,6 +49,20 @@ RDA5807M::RDA5807M(void) : b1(0),b2(0),b3(0),b4(0),b5(0),b6(0),b7(0),
   INT_MODE(true),Seek_mode(0),
   SEEKTH(8),LNA_PORT_SEL(2),
   LNA_ICSEL_BIT(0),VOLUME(11),
+  OPEN_MODE(0),
+  slave_master(false),
+  ws_lr(false),
+  sclk_i_edge(false),
+  data_signed(false),
+  WS_I_EDGE(false),
+  I2S_SW_CNT(0),
+  SW_O_EDGE(false),
+  SCLK_O_EDGE(false),
+  L_DELY(false),R_DELY(false),
+  TH_SOFTBLEND(16),MODE_65MHz(true),
+  SEEK_TH_OLD(0),SOFTBLEND_EN(true),
+  FREQ_MODE(false),
+  freq_direct(0),
 
 
   lastRead(0) {
@@ -292,12 +306,12 @@ void RDA5807M::SetGPIO(int GPIO, int Choice) {
   else                GPIO3 = Choice;
 }
 
-void RDA5807M::InterruptMode(bool Wait) { 
+void RDA5807M::InterruptMode(bool Wait) {
   INT_MODE = Wait;
   Set();
 }
 
-void RDA5807M::RSSISeekMode(bool On) { 
+void RDA5807M::RSSISeekMode(bool On) {
   Seek_mode = On ? 2 : 0;
   Set();
 }
@@ -322,15 +336,85 @@ void RDA5807M::Volume(int Value) {
   Set();
 }
 
+void RDA5807M::RegisterMode(bool WriteBehind) {
+  OPEN_MODE = WriteBehind ? 3 : 0;
+  Set();
+}
 
+void RDA5807M::I2S_Slave(bool On) {
+  slave_master = On ? 1 : 0;
+  Set();
+}
 
+void RDA5807M::I2S_WS_vs_LR(bool left_is_zero) {
+  ws_lr = left_is_zero ? 1 : 0;
+  Set();
+}
 
+void RDA5807M::I2S_Invert_SCLK(bool On) {
+  sclk_i_edge = On ? 1 : 0;
+  Set();
+}
 
+void RDA5807M::I2S_Signed(bool On) {
+  data_signed = On ? 1 : 0;
+  Set();
+}
 
+void RDA5807M::I2S_Invert_WS(bool On) {
+  WS_I_EDGE = On ? 1 : 0;
+  Set();
+}
 
+void RDA5807M::I2S_WS_Step(int Choice) {
+  I2S_SW_CNT = Choice & 0xF;
+  Set();
+}
 
+void RDA5807M::I2S_Invert_WS_Out(bool On) {
+  SW_O_EDGE = On ? 1 : 0;
+  Set();
+}
 
+void RDA5807M::I2S_Invert_SCLK_Out(bool On) {
+  SCLK_O_EDGE = On ? 1 : 0;
+  Set();
+}
 
+void RDA5807M::I2S_DelayLeft(bool On) {
+  L_DELY = On ? 1 : 0;
+  Set();
+}
+
+void RDA5807M::I2S_DelayRight(bool On) {
+  R_DELY = On ? 1 : 0;
+  Set();
+}
+
+void RDA5807M::SoftblendThreshold(int Threshold) {
+  TH_SOFTBLEND = Threshold & 0x1F;
+  Set();
+}
+
+void RDA5807M::RSSISeekThreshold(int Threshold) {
+  SEEK_TH_OLD = Threshold & 0x3F;
+  Set();
+}
+
+void RDA5807M::Softblend(bool On) {
+  SOFTBLEND_EN = On ? 1 : 0;
+  Set();
+}
+
+void RDA5807M::FrequencyChanged(bool On) {
+  FREQ_MODE = On ? 1 : 0;
+  Set();
+}
+
+void RDA5807M::FrequencyDirect(uint16_t Freq) {
+  freq_direct = Freq;
+  Set();
+}
 
 
 /*******************************************************************************
@@ -381,13 +465,24 @@ void RDA5807M::Set(bool force) {
                                u4 |= (LNA_ICSEL_BIT << 4);
                                u4 |= (VOLUME);
   //--
-
-
-
-
-
-
-
+                               u5 |= (OPEN_MODE << 13);
+  if (slave_master)            u5 |= (1 << 12);
+  if (ws_lr)                   u5 |= (1 << 11);
+  if (sclk_i_edge)             u5 |= (1 << 10);
+  if (data_signed)             u5 |= (1 << 9);
+  if (WS_I_EDGE)               u5 |= (1 << 8);
+                               u5 |= (I2S_SW_CNT << 4);
+  if (SW_O_EDGE)               u5 |= (1 << 3);
+  if (SCLK_O_EDGE)             u5 |= (1 << 2);
+  if (L_DELY)                  u5 |= (1 << 1);
+  if (R_DELY)                  u5 |= (1);
+  //--
+                               u6 |= (TH_SOFTBLEND << 10);
+  if (MODE_65MHz)              u6 |= (1 << 9);
+                               u6 |= (SEEK_TH_OLD << 2);
+  if (SOFTBLEND_EN)            u6 |= (1 << 1);
+  if (FREQ_MODE)               u6 |= (1);
+  //--
 
 
 

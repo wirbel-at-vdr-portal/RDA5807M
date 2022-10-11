@@ -62,18 +62,31 @@ private:
   bool AFCD;
   bool I2S_ENABLE;
   uint8_t GPIO3,GPIO2,GPIO1;
-
   bool INT_MODE;
   uint8_t Seek_mode;
   uint8_t SEEKTH;
   uint8_t LNA_PORT_SEL;
   uint8_t LNA_ICSEL_BIT;
   uint8_t VOLUME;
+  uint8_t OPEN_MODE;
+  bool slave_master;
+  bool ws_lr;
+  bool sclk_i_edge;
+  bool data_signed;
+  bool WS_I_EDGE;
+  uint8_t I2S_SW_CNT;
+  bool SW_O_EDGE;
+  bool SCLK_O_EDGE;
+  bool L_DELY;
+  bool R_DELY;
+  uint8_t TH_SOFTBLEND;
+  bool MODE_65MHz;
+  uint8_t SEEK_TH_OLD;
+  bool SOFTBLEND_EN;
+  bool FREQ_MODE;
+  uint16_t freq_direct;
 
-
-
-
-  bool MODE_65MHz; // If 0x07h_bit<9> ( band )=1, 65-76MHz; =0, 50-76MHz  
+ 
 
 
   unsigned long lastRead;
@@ -82,6 +95,9 @@ private:
   void Get(void);
   uint16_t Get(uint8_t Register);
 public:
+  /* constructor.
+   * Before calling, the Wire library needs to be initialized.
+   */
   RDA5807M();
 
   /* The Chip ID should read as 0x58xx, ie. 0x5804.
@@ -360,7 +376,8 @@ public:
    */
   void InterruptMode(bool Wait);
 
-  /* add RSSI (signal strength) seek mode.
+  /* add old RSSI (signal strength) seek mode.
+   * default off.
    */
   void RSSISeekMode(bool On);
 
@@ -385,10 +402,94 @@ public:
    */
   void LNA_Current(int Value);
 
-  /* Audio Volume.
+  /* Audio Volume, logarithmic.
    *   0..15, default:11
+   *   NOTE: 0 = off && high impedance.
    */
   void Volume(int Value);
 
+  /* Allow reserved register mode.
+   * true: open behind registers writing function
+   */
+  void RegisterMode(bool WriteBehind);
+
+  /* Use I2S as master or slave.
+   * false: master (default)
+   * true : slave
+   */
+  void I2S_Slave(bool On);
+
+  /* I2S, WS relation to left/right channel.
+   * false: ws=0 ->r, ws=1 ->l;
+   * true : ws=0 ->l, ws=1 ->r.
+   */
+  void I2S_WS_vs_LR(bool left_is_zero);
+
+  /* I2S, invert SCLK internally?
+   * default:off
+   */
+  void I2S_Invert_SCLK(bool On);
+
+  /* I2S, output signed or unsigned data?
+   * false: output unsigned 16-bit audio
+   * true : output signed 16-bit audio data
+   */
+  void I2S_Signed(bool On);
+
+  /* I2S, invert WS internally?
+   */
+  void I2S_Invert_WS(bool On);
+
+  /* I2S, master mode WS step
+   * 0: 8kbps
+   * 1: 11.025kbps
+   * 2: 12kbps
+   * 3: 16kbps
+   * 4: 22.05kbps
+   * 5: 24kbps
+   * 6: 32kbps
+   * 7: 44.1kbps
+   * 7: 48kbps
+   */
+  void I2S_WS_Step(int Choice);
+
+  /* I2S, invert WS output if set as master?
+   */
+  void I2S_Invert_WS_Out(bool On);
+
+  /* I2S, invert SCLK output if set as master?
+   */
+  void I2S_Invert_SCLK_Out(bool On);
+
+  /* I2S, delay L channel data by 1T
+   */
+  void I2S_DelayLeft(bool On);
+
+  /* I2S, delay R channel data by 1T
+   */
+  void I2S_DelayRight(bool On);
+
+  /* Threshold for noise soft blend setting
+   * 0..31, Units are 2dB.
+   */
+  void SoftblendThreshold(int Threshold);
+
+  /* Seek threshold for old RSSI seek mode
+   * 0..63
+   */
+  void RSSISeekThreshold(int Threshold);
+
+  /* Softblend enable
+   */
+  void Softblend(bool On);
+
+  /* write only: if true, a new Frequency was set.
+   */
+  void FrequencyChanged(bool On);
+
+  /* Direct Frequency Input, instead of Channel Number, Band and
+   * Channel Spacing. Normally not used.
+   */
+  void FrequencyDirect(uint16_t Freq);
 
 };
