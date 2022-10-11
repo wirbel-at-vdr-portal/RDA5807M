@@ -179,12 +179,12 @@ void RDA5807M::BassBoost(bool On) {
   Set();
 }
 
-void RDA5807M::RCLK_Always(bool On) {
+void RDA5807M::Clock_Always_On(bool On) {
   RCLK_NON_CALIBRATE_MODE = not On;
   Set();
 }
 
-void RDA5807M::RCLK_DirektInput(bool On) {
+void RDA5807M::Clock_Direct(bool On) {
   RCLK_DIRECT_INPUT_MODE = On;
   Set();
 }

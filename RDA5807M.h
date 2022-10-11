@@ -104,56 +104,133 @@ public:
    */
   unsigned ChipId(void);
 
-  /* false = No RDS/RBDS group ready (default)
-   * true  = New RDS/RBDS group ready
+  /* Soft reset.
    */
-  bool RDS_ready(void);
+  void SoftReset(bool On);
 
-  /* True, if a seek or tune operation completed.
-   * false = Not complete
-   * true  = Complete
+  /* Power Up Enable.
    */
-  bool TuneComplete(void);
+  void PowerUp(bool On);
 
-  /* True, if the seek operation fails to find a channel with an RSSI
-   *   level greater than SeekLevel().
-   * false = Seek successful
-   * true  = Seek failure
+  /* RCLK always on.
+   * false = RCLK clock is not always supplied when FM works
+   * true  = RCLK clock is always supplied
    */
-  bool SeekFail(void);
+  void Clock_Always_On(bool On);
 
-  /* True, if the RDS decoder is synchronized.
-   *   Available only in RDS verbose mode.
-   * false = RDS decoder not synchronized(default)
-   * true  = RDS decoder synchronized
+  /* RCLK is feed directly into input, instead of using a crystal.
    */
-  bool RDS_sync(void);
+  void Clock_Direct(bool On);
 
-  /* True, if an RDS Block E has been found (US only, RDSB).
-   *   Available only if RDS enabled.
-   * false = no Block E has been found
-   * true  = Block E has been found
+  /* Set clock frequency.
+   * 0: 32.768kHz
+   * 1: 12MHz
+   * 2: 13MHz
+   * 3: 19.2MHz
+   * 5: 24MHz
+   * 6: 24MHz
+   * 7: 38.4MHz
+   * Any other value is invalid.
    */
-  bool RDS_BlockE(void);
+  void ClockFrequency(int Choice);
+
+  /* Select Low Noise Amplifier input port.
+   * 0: no input
+   * 1: (-) input
+   * 2: (+) input (default)
+   * 3: dual port input
+   */
+  void LNA_InputPort(int Value);
+
+  /* Select Low Noise Amplifier current.
+   * 0: 1.8mA
+   * 1: 2.1mA
+   * 2: 2.5mA
+   * 3: 3.0mA
+   */
+  void LNA_Current(int Value);
+
+  /* Band Select.
+   * 0: 87–108MHz (US/Europe)
+   * 1: 76–91MHz (Japan)
+   * 2: 76–108MHz (world wide)
+   * 3: 65–76MHz （East Europe）
+   * 4: 50-65MHz
+   */
+  void Band(int Choice);
+
+  /* FM De-emphasis.
+   * false: 75 μs (US)
+   * true : 50 μs (Europe)
+   */
+  void Deemphasis(bool Europe);
+
+  /* enable/disable AFC.
+   */
+  void AFC(bool On);
+
+  /* Channel Spacing.
+   * 0: 100kHz
+   * 1: 200kHz
+   * 2:  50kHz
+   * 3:  25KHz
+   */
+  void ChannelSpacing(int Choice);
+
+  /* New Demodulate Method
+   * May increase sensitity by 1dB
+   */
+  void NewDemod(bool On);
+
+  /* Audio Output On/Off.
+   * false = High impedance;
+   * true  = Normal operation (on)
+   */
+  void AudioEnable(bool On);
+
+  /* Mute Output.
+   * false = not muted
+   * true  = muted
+   */
+  void Muted(bool On);
+
+  /* softmute enable
+   */
+  void SoftMute(bool On);
+
+  /* Softblend enable
+   */
+  void Softblend(bool On);
+
+  /* Threshold for noise soft blend setting
+   * 0..31, Units are 2dB.
+   */
+  void SoftblendThreshold(int Threshold);
+
+  /* Mono.
+   * false = Stereo
+   * true  = Force Mono
+   */
+  void Mono(bool On);
+
+  /* Bass Boost.
+   * false = no bass boost
+   * true  = bass boost enabled
+   */
+  void BassBoost(bool On);
+
+  /* Audio Volume, logarithmic.
+   *   0..15, default:11
+   *   NOTE: 0 = off && high impedance.
+   */
+  void Volume(int Value);
+
 
   /* Stereo Indicator.
    * false = Mono
    * true  = Stereo
    */
   bool StereoIndicator(void);
-
-  /* Returns the current channel number, where Frequency is
-   * set as
-   *   Frequency = Channel Spacing (kHz) x Channel Number + Band Begin
-   *
-   *   Band Begin is
-   *      Band 0: 87.0 MHz
-   *      Band 1: 76.0 MHz
-   *      Band 2: 76.0 MHz
-   *      Band 3: 65.0 MHz (or 50MHz)
-   * The Channel Number is updated after a tune or seek operation.
-   */
-  uint16_t ChannelNumber(void);
 
   /* Received Signal Strength Indicator (RSSI)
    *   returned value is logarithmic,
@@ -173,6 +250,123 @@ public:
    * true  = FM ready
    */
   bool FM_ready(void);
+
+  //---------------------------------------------------
+  // Tune/Seek related
+  //---------------------------------------------------
+
+  /* Returns the current channel number, where Frequency is
+   * set as
+   *   Frequency = Channel Spacing (kHz) x Channel Number + Band Begin
+   *
+   *   Band Begin is
+   *      Band 0: 87.0 MHz
+   *      Band 1: 76.0 MHz
+   *      Band 2: 76.0 MHz
+   *      Band 3: 65.0 MHz (or 50MHz)
+   * The Channel Number is updated after a tune or seek operation.
+   */
+  uint16_t ChannelNumber(void);
+
+  /* Sets the current channel number, where Frequency is
+   * set as
+   *   Frequency = Channel Spacing (kHz) x Channel Number + Band Begin
+   *
+   *   Band Begin is
+   *      Band 0: 87.0 MHz
+   *      Band 1: 76.0 MHz
+   *      Band 2: 76.0 MHz
+   *      Band 3: 65.0 MHz (or 50MHz)
+   */
+  void ChannelNumber(uint16_t Channel);
+
+  /* Start/Stop a tune operation.
+   */
+  void Tune(bool On);
+
+  /* True, if a seek or tune operation completed.
+   * false = Not complete
+   * true  = Complete
+   */
+  bool TuneComplete(void);
+
+  /* FM Station Seek.
+   * false = stop seek
+   * true  = enable seek, flag is reset
+   *
+   * NOTE: Reset to false by SF=1 or STC=1
+   */
+  void Seek(bool On);
+
+  /* True, if the seek operation fails to find a channel with an RSSI
+   *   level greater than SeekLevel().
+   * false = Seek successful
+   * true  = Seek failure
+   */
+  bool SeekFail(void);
+
+  /* FM Station Seek Direction.
+   * false = Seek down
+   * true  = Seek up
+   */
+  void SeekDirection(bool Up);
+
+  /* FM Station Seek, stop on band limits
+   * false = wrap on band limit and continue
+   * true  = stop on band limit
+   */
+  void SeekStopBandlimits(bool On);
+
+  /* Seek SNR threshold value.
+   *   0..15, default:8 (-71dBm)
+   */
+  void SeekThreshold(int Value);
+
+  /* Seek threshold for old RSSI seek mode
+   * 0..63
+   */
+  void RSSISeekThreshold(int Threshold);
+
+
+  //---------------------------------------------------
+  // RDS related
+  //---------------------------------------------------
+
+  /* RDS enable (and US variant RDSB)
+   */
+  void RDS_enable(bool On);
+
+  /* Enable RDBS (Radio Broadcast Data System) support.
+   * Only used in US, and needs RDS enable.
+   */
+  void RBDS_enable(bool On);
+
+  /* RDS fifo mode enable.
+   */
+  void RDS_FIFO_mode(bool On);
+
+  /* On = clear RDS fifo
+   */
+  void Clear_RDS_FIFO(bool On);
+
+  /* false = No RDS/RBDS group ready (default)
+   * true  = New RDS/RBDS group ready
+   */
+  bool RDS_ready(void);
+
+  /* True, if the RDS decoder is synchronized.
+   *   Available only in RDS verbose mode.
+   * false = RDS decoder not synchronized(default)
+   * true  = RDS decoder synchronized
+   */
+  bool RDS_sync(void);
+
+  /* True, if an RDS Block E has been found (US only, RDSB).
+   *   Available only if RDS enabled.
+   * false = no Block E has been found
+   * true  = Block E has been found
+   */
+  bool RDS_BlockE(void);
 
   /* Returns true, if RDS is US-style RDS (RDBS).
    * false = block id of registers 0x0C..0x0F is A,B,C,D 
@@ -201,217 +395,14 @@ public:
   uint16_t RDS_BlockC(void);
   uint16_t RDS_BlockD(void);
 
-  /* Audio Output On/Off.
-   * false = High impedance;
-   * true  = Normal operation (on)
-   */
-  void AudioEnable(bool On);
 
-  /* Mute Output.
-   * false = not muted
-   * true  = muted
-   */
-  void Muted(bool On);
-
-  /* Mono.
-   * false = Stereo
-   * true  = Force Mono
-   */
-  void Mono(bool On);
-
-  /* Bass Boost.
-   * false = no bass boost
-   * true  = bass boost enabled
-   */
-  void BassBoost(bool On);
-
-  /* RCLK always on.
-   * false = RCLK clock is not always supplied when FM works
-   * true  = RCLK clock is always supplied
-   */
-  void RCLK_Always(bool On);
-
-  /* RCLK clock use the direct input mode
-   */
-  void RCLK_DirektInput(bool On);
-
-  /* FM Station Seek Direction.
-   * false = Seek down
-   * true  = Seek up
-   */
-  void SeekDirection(bool Up);
-
-  /* FM Station Seek.
-   * false = stop seek
-   * true  = enable seek, flag is reset
-   *
-   * NOTE: Reset to false by SF=1 or STC=1
-   */
-  void Seek(bool On);
-
-  /* FM Station Seek, stop on band limits
-   * false = wrap on band limit and continue
-   * true  = stop on band limit
-   */
-  void SeekStopBandlimits(bool On);
-
-  /* Set clock frequency.
-   * 0: 32.768kHz
-   * 1: 12MHz
-   * 2: 13MHz
-   * 3: 19.2MHz
-   * 5: 24MHz
-   * 6: 24MHz
-   * 7: 38.4MHz
-   * Any other value is invalid.
-   */
-  void ClockFrequency(int Choice);
-
-  /* RDS enable (and US variant RDSB)
-   */
-  void RDS_enable(bool On);
-
-  /* New Demodulate Method
-   * May increase sensitity by 1dB
-   */
-  void NewDemod(bool On);
-
-  /* Soft reset.
-   */
-  void SoftReset(bool On);
-
-  /* Power Up Enable.
-   */
-  void PowerUp(bool On);
-
-  /* Sets the current channel number, where Frequency is
-   * set as
-   *   Frequency = Channel Spacing (kHz) x Channel Number + Band Begin
-   *
-   *   Band Begin is
-   *      Band 0: 87.0 MHz
-   *      Band 1: 76.0 MHz
-   *      Band 2: 76.0 MHz
-   *      Band 3: 65.0 MHz (or 50MHz)
-   */
-  void ChannelNumber(uint16_t Channel);
-
-  /* Directly Control Mode, Only used when test.
-   */
-  void TestMode(bool On);
-
-  /* Start/Stop a tune operation.
-   */
-  void Tune(bool On);
-
-  /* Band Select.
-   * 0: 87–108MHz (US/Europe)
-   * 1: 76–91MHz (Japan)
-   * 2: 76–108MHz (world wide)
-   * 3: 65–76MHz （East Europe）
-   * 4: 50-65MHz
-   */
-  void Band(int Choice);
-
-  /* Channel Spacing.
-   * 0: 100kHz
-   * 1: 200kHz
-   * 2:  50kHz
-   * 3:  25KHz
-   */
-  void ChannelSpacing(int Choice);
-
-  /* Seek/Tune Complete Interrupt Enable.
-   * Generate a low pulse on GPIO2, when complete.
-   */
-  void SeekTuneInterrupt(bool On);
-
-  /* Enable RDBS (Radio Broadcast Data System) support.
-   * Only used in US.
-   */
-  void RBDS_enable(bool On);
-
-  /* RDS fifo mode enable.
-   */
-  void RDS_FIFO_mode(bool On);
-
-  /* FM De-emphasis.
-   * false: 75 μs (US)
-   * true : 50 μs (Europe)
-   */
-  void Deemphasis(bool Europe);
-
-  /* On = clear RDS fifo
-   */
-  void Clear_RDS_FIFO(bool On);
-
-  /* softmute enable
-   */
-  void SoftMute(bool On);
-
-  /* enable/disable AFC.
-   */  
-  void AFC(bool On);
+  //---------------------------------------------------
+  // I2S related
+  //---------------------------------------------------
 
   /* enable/disable digital I2S audio.
-   */  
+   */
   void I2S(bool On);
-
-  /* Set GPIO function.
-   * GPIO  : 1 or 2 or 3
-   * Choice:
-   *   0: high impedance
-   *   1: special purpose.
-   *      GPIO3: Mono/Stereo indicator
-   *      GPIO2: Interrupt Output
-   *      GPIO1: do not use.
-   *   2: high
-   *   3: low
-   */
-  void SetGPIO(int GPIO, int Choice);
-
-  /* Seek/Tune Interrupt mode.
-   * false: 5ms
-   * true : wait until Reg 0x0C was read
-   */
-  void InterruptMode(bool Wait);
-
-  /* add old RSSI (signal strength) seek mode.
-   * default off.
-   */
-  void RSSISeekMode(bool On);
-
-  /* Seek SNR threshold value.
-   *   0..15, default:8 (-71dBm)
-   */
-  void SeekThreshold(int Value);
-
-  /* Select Low Noise Amplifier input port.
-   * 0: no input
-   * 1: (-) input
-   * 2: (+) input (default)
-   * 3: dual port input
-   */
-  void LNA_InputPort(int Value);
-
-  /* Select Low Noise Amplifier current.
-   * 0: 1.8mA
-   * 1: 2.1mA
-   * 2: 2.5mA
-   * 3: 3.0mA
-   */
-  void LNA_Current(int Value);
-
-  /* Audio Volume, logarithmic.
-   *   0..15, default:11
-   *   NOTE: 0 = off && high impedance.
-   */
-  void Volume(int Value);
-
-  /* Allow reserved register mode.
-   * true: open behind registers writing function
-   */
-  void RegisterMode(bool WriteBehind);
 
   /* Use I2S as master or slave.
    * false: master (default)
@@ -469,19 +460,18 @@ public:
    */
   void I2S_DelayRight(bool On);
 
-  /* Threshold for noise soft blend setting
-   * 0..31, Units are 2dB.
-   */
-  void SoftblendThreshold(int Threshold);
+  //---------------------------------------------------
+  // Testing/Debugging related
+  //---------------------------------------------------
 
-  /* Seek threshold for old RSSI seek mode
-   * 0..63
+  /* Directly Control Mode, Only used when test.
    */
-  void RSSISeekThreshold(int Threshold);
+  void TestMode(bool On);
 
-  /* Softblend enable
+  /* Allow reserved register mode.
+   * true: open behind registers writing function
    */
-  void Softblend(bool On);
+  void RegisterMode(bool WriteBehind);
 
   /* write only: if true, a new Frequency was set.
    */
@@ -491,5 +481,39 @@ public:
    * Channel Spacing. Normally not used.
    */
   void FrequencyDirect(uint16_t Freq);
+
+
+  //---------------------------------------------------
+  // GPIO and interrupts
+  //---------------------------------------------------
+
+  /* Set GPIO function.
+   * GPIO  : 1 or 2 or 3
+   * Choice:
+   *   0: high impedance
+   *   1: special purpose.
+   *      GPIO3: Mono/Stereo indicator
+   *      GPIO2: Interrupt Output
+   *      GPIO1: do not use.
+   *   2: high
+   *   3: low
+   */
+  void SetGPIO(int GPIO, int Choice);
+
+  /* add old RSSI (signal strength) seek mode.
+   * default off.
+   */
+  void RSSISeekMode(bool On);
+
+  /* Seek/Tune Complete Interrupt Enable.
+   * Generate a low pulse on GPIO2, when complete.
+   */
+  void SeekTuneInterrupt(bool On);
+
+  /* Seek/Tune Interrupt mode.
+   * false: 5ms
+   * true : wait until Reg 0x0C was read
+   */
+  void InterruptMode(bool Wait);
 
 };
