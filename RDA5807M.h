@@ -90,7 +90,7 @@ private:
 
 
   unsigned long lastRead;
-
+  void Set(uint8_t Register, uint16_t Value);
   void Set(bool force = false);
   void Get(void);
   uint16_t Get(uint8_t Register);
@@ -481,6 +481,8 @@ public:
    * Channel Spacing. Normally not used.
    */
   void FrequencyDirect(uint16_t Freq);
+
+  void Debug(void);
 
 
   //---------------------------------------------------

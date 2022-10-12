@@ -21,6 +21,7 @@
  ******************************************************************************/
 #include <Arduino.h>
 #include <Wire.h>
+#include <stdio.h>
 #include "RDA5807M.h"
 
 /*******************************************************************************
@@ -28,8 +29,10 @@
  ******************************************************************************/
 static constexpr uint8_t Address = 0x10; // 7-bit I2C chip address (0010000b)
 
-#define RD16(dst)  \
-    dst = ((uint16_t)Wire.read() << 8) | Wire.read()
+#define RD16(dst)      \
+    dst = Wire.read(); \
+    dst <<= 8;         \
+    dst |= Wire.read()
 
 
 RDA5807M::RDA5807M(void) : b1(0),b2(0),b3(0),b4(0),b5(0),b6(0),b7(0),
@@ -160,7 +163,7 @@ uint16_t RDA5807M::RDS_BlockD(void) {
 }
 
 void RDA5807M::AudioEnable(bool On) {
-  DHIZ = not On;
+  DHIZ = On;
   Set();
 }
 
@@ -227,7 +230,7 @@ void RDA5807M::RDS_enable(bool On) {
 
 void RDA5807M::PowerUp(bool On) {
   ENABLE = On;
-  Set();
+  Set(true);
 }
 
 void RDA5807M::ChannelNumber(uint16_t Channel) {
@@ -416,10 +419,30 @@ void RDA5807M::FrequencyDirect(uint16_t Freq) {
   Set();
 }
 
+void RDA5807M::Debug(void) {
+  uint16_t Reg;
+  Serial.print("\n");
+
+  for(int i=0x2; i<=0xB; i++) {
+     char buf[8];
+     Reg = RDA5807M::Get(i);
+     sprintf(buf, "%X: %04X", i, Reg);
+     Serial.println(buf);
+     }
+}
+
 
 /*******************************************************************************
  * General members following.
  ******************************************************************************/
+void RDA5807M::Set(uint8_t Register, uint16_t Value) {
+  Wire.beginTransmission(Address + 1);
+  Wire.write(Register);
+  uint8_t u;
+  u = Value >> 8;   Wire.write(u);
+  u = Value & 0xFF; Wire.write(u);
+  Wire.endTransmission();
+}
 
 void RDA5807M::Set(bool force) {
   uint16_t u1=0,u2,u3=0,u4=0,u5=0,u6=0,u7=0;
@@ -484,29 +507,23 @@ void RDA5807M::Set(bool force) {
   if (FREQ_MODE)               u6 |= (1);
   //--
 
+  char buf[8];
+  sprintf(buf, "%04X, ", u1); Serial.print(buf);
+  sprintf(buf, "%04X, ", u2); Serial.print(buf);
+  sprintf(buf, "%04X, ", u3); Serial.print(buf);
+  sprintf(buf, "%04X, ", u4); Serial.print(buf);
+  sprintf(buf, "%04X, ", u5); Serial.print(buf);
+  sprintf(buf, "%04X, ", u6); Serial.print(buf);
+  sprintf(buf, "%04X\n", u7); Serial.print(buf);
 
+  if (force || (u1 != b1)) { Set(0x2, u1); b1 = u1; }
+  if (force || (u2 != b2)) { Set(0x3, u2); b2 = u2; }
+  if (force || (u3 != b3)) { Set(0x4, u3); b3 = u3; }
+  if (force || (u4 != b4)) { Set(0x5, u4); b4 = u4; }
+  if (force || (u5 != b5)) { Set(0x6, u5); b5 = u5; }
+  if (force || (u6 != b6)) { Set(0x7, u6); b6 = u6; }
+  if (force || (u7 != b7)) { Set(0x8, u7); b7 = u7; }
 
-
-  if (force ||
-      (u1 != b1) || (u2 != b2) || (u3 != b3) || (u4 != b4) ||
-      (u5 != b5) || (u6 != b6) || (u7 != b7)) {
-     Wire.beginTransmission(Address); 
-     Wire.write(u1);
-     Wire.write(u2);
-     Wire.write(u3);
-     Wire.write(u4);
-     Wire.write(u5);
-     Wire.write(u6);
-     Wire.write(u7);
-     Wire.endTransmission();
-     b1 = u1;
-     b2 = u2;
-     b3 = u3;
-     b4 = u4;
-     b5 = u5;
-     b6 = u6;
-     b7 = u7;
-     }
 }
 
 uint16_t RDA5807M::Get(uint8_t Register) {
@@ -514,7 +531,7 @@ uint16_t RDA5807M::Get(uint8_t Register) {
   Wire.write(Register);
   Wire.endTransmission(false);
 
-  Wire.requestFrom(Address + 1, 1 * sizeof(uint16_t));
+  Wire.requestFrom(Address + 1, 2);
   uint16_t result;
   RD16(result);
   Wire.endTransmission();
@@ -527,8 +544,9 @@ void RDA5807M::Get(void) {
 
   lastRead = millis();
   Wire.beginTransmission(Address);
-  Wire.requestFrom(Address, 9 * sizeof(uint16_t));
-  if (Wire.available() >= 9 * sizeof(uint16_t)) {
+  Wire.requestFrom(Address, 6 * sizeof(uint16_t));
+  if (Wire.available() >= 6 * sizeof(uint16_t)) {
+     Serial.print("read ");
      RD16(Rd[0]); // 0x0A
      RD16(Rd[1]); // 0x0B
      RD16(Rd[2]); // 0x0C
